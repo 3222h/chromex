@@ -7,19 +7,16 @@
     "storage",
     "activeTab",
     "tabs",
-    "http://ipinfo.io/"  // Allows fetching IP information
+    "http://ipinfo.io/"
   ],
   "background": {
     "scripts": ["background.js"],
     "persistent": true
   },
   "browser_action": {
-    "default_popup": "popup.html",
-    "default_icon": {
-      "48": "icon-disabled.png"  // Default is disabled
-    }
+    "default_popup": "popup.html"
   },
   "icons": {
-    "48": "icon-disabled.png"  // Default is disabled
+    "48": "icon.png"
   }
 }
