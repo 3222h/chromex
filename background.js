@@ -60,11 +60,3 @@ function applySavedProxyState() {
 
 chrome.runtime.onStartup.addListener(applySavedProxyState);
 chrome.runtime.onInstalled.addListener(applySavedProxyState);
-
-// Fetch current IP address when proxy is enabled
-function fetchIPAddress(callback) {
-  fetch("http://ipinfo.io/json")
-    .then(response => response.json())
-    .then(data => callback(data.ip))
-    .catch(err => console.log('Error fetching IP:', err));
-}
