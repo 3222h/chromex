@@ -1,21 +1,25 @@
 {
   "manifest_version": 2,
   "name": "SOCKS5 Proxy Toggle",
-  "version": "1.0",
+  "version": "1.1",
   "permissions": [
     "proxy",
     "storage",
     "activeTab",
-    "tabs"
+    "tabs",
+    "http://ipinfo.io/"  // Allows fetching IP information
   ],
   "background": {
     "scripts": ["background.js"],
-    "persistent": false
+    "persistent": true
   },
   "browser_action": {
-    "default_popup": "popup.html"
+    "default_popup": "popup.html",
+    "default_icon": {
+      "48": "icon-disabled.png"  // Default is disabled
+    }
   },
   "icons": {
-    "48": "icon.png"
+    "48": "icon-disabled.png"  // Default is disabled
   }
 }
