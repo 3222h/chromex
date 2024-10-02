@@ -15,7 +15,6 @@ function enableProxy() {
   chrome.proxy.settings.set({ value: proxyConfig, scope: 'regular' }, function() {
     console.log('Proxy enabled.');
   });
-  updateIcon(true);
 }
 
 // Disable proxy
@@ -23,31 +22,9 @@ function disableProxy() {
   chrome.proxy.settings.clear({ scope: 'regular' }, function() {
     console.log('Proxy disabled.');
   });
-  updateIcon(false);
 }
 
-// Update icon based on proxy status
-function updateIcon(isEnabled) {
-  let iconPath = isEnabled ? 'icon-enabled.png' : 'icon-disabled.png';
-  chrome.browserAction.setIcon({ path: iconPath });
-}
-
-// Toggle proxy status on icon click
-chrome.browserAction.onClicked.addListener(function() {
-  chrome.storage.local.get(['proxyEnabled'], function(result) {
-    let proxyEnabled = result.proxyEnabled || false;
-
-    if (proxyEnabled) {
-      disableProxy();
-      chrome.storage.local.set({ proxyEnabled: false });
-    } else {
-      enableProxy();
-      chrome.storage.local.set({ proxyEnabled: true });
-    }
-  });
-});
-
-// Apply saved proxy settings when the extension is started
+// Apply saved proxy settings when the extension starts
 function applySavedProxyState() {
   chrome.storage.local.get(['proxyEnabled'], function(result) {
     if (result.proxyEnabled) {
