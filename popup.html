@@ -6,32 +6,35 @@
       font-family: Arial, sans-serif;
       padding: 20px;
       display: flex;
-      justify-content: center;
-      align-items: center;
       flex-direction: column;
-    }
-    .icon {
-      width: 48px;
-      height: 48px;
-      border-radius: 50%;
-      display: flex;
       justify-content: center;
       align-items: center;
-      color: white;
-      font-size: 20px;
+    }
+
+    #status {
       margin-bottom: 10px;
     }
-    .enabled {
-      background-color: green;
+
+    .btn {
+      display: inline-block;
+      margin: 5px;
+      padding: 10px 15px;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      cursor: pointer;
     }
-    .disabled {
-      background-color: red;
+
+    .btn:hover {
+      background-color: #0056b3;
     }
   </style>
 </head>
 <body>
-  <div id="status-icon" class="icon">OFF</div>
-  <p id="status-text">Proxy is disabled</p>
+  <h2>SOCKS5 Proxy Toggle</h2>
+  <p id="status">Proxy is disabled</p>
+  <button id="enable" class="btn">Enable Proxy</button>
+  <button id="disable" class="btn">Disable Proxy</button>
   <p id="ip-address">IP: Not available</p>
 
   <script src="popup.js"></script>
