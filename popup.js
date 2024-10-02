@@ -106,7 +106,7 @@ function enableYouTubeSettings() {
           const video = document.querySelector('video');
           if (video) {
             video.playbackRate = 0.25;
-            video.setVideoQuality('small'); // 144p quality
+            video.setVideoQuality('small'); // Set to 144p quality
           }
         `
       });
@@ -131,7 +131,7 @@ function disableYouTubeSettings() {
       console.log("YouTube settings disabled.");
     }
   });
-});
+}
 
 // Fetch current IP address, its type, country, and timezone
 function fetchIPAddress(callback) {
@@ -145,4 +145,14 @@ function fetchIPAddress(callback) {
 
       callback(ip, type, country, timezone);
     })
-    .catch(err => console.log('Error fetching IP:',
+    .catch(err => console.log('Error fetching IP:', err));
+}
+
+// Function to classify the IP type (datacenter, residential, etc.)
+function classifyIPType(organization) {
+  if (organization.includes("AS")) {
+    if (organization.toLowerCase().includes("mobile")) return "Mobile";
+    if (organization.toLowerCase().includes("residential")) return "Residential";
+    if (organization.toLowerCase().includes("vpn")) return "VPN";
+    if (organization.toLowerCase().includes("datacenter") || organization.toLowerCase().includes("cloud")) return "Datacenter";
+  }
