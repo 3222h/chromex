@@ -1,29 +1,65 @@
-// Get current proxy status and IP address
-chrome.storage.local.get(['proxyEnabled'], function(result) {
-  let statusText = result.proxyEnabled ? "Enabled" : "Disabled";
-  let statusElement = document.getElementById('status-text');
-  let iconElement = document.getElementById('status-icon');
+// Update proxy status and IP address in the popup
+function updatePopup() {
+  chrome.storage.local.get(['proxyEnabled'], function(result) {
+    let statusElement = document.getElementById('status');
+    let enableButton = document.getElementById('enable');
+    let disableButton = document.getElementById('disable');
+    let ipElement = document.getElementById('ip-address');
 
-  if (result.proxyEnabled) {
-    iconElement.classList.remove('disabled');
-    iconElement.classList.add('enabled');
-    iconElement.innerText = "ON";
-    statusElement.innerText = "Proxy is enabled";
-    fetchIPAddress(function(ip) {
-      document.getElementById('ip-address').innerText = "IP: " + ip;
+    if (result.proxyEnabled) {
+      statusElement.innerText = "Proxy is enabled";
+      fetchIPAddress(function(ip) {
+        ipElement.innerText = "IP: " + ip;
+      });
+      enableButton.disabled = true;
+      disableButton.disabled = false;
+    } else {
+      statusElement.innerText = "Proxy is disabled";
+      ipElement.innerText = "IP: Not available";
+      enableButton.disabled = false;
+      disableButton.disabled = true;
+    }
+  });
+}
+
+// Enable proxy
+document.getElementById('enable').addEventListener('click', function() {
+  chrome.storage.local.set({ proxyEnabled: true }, function() {
+    chrome.proxy.settings.set({
+      value: {
+        mode: "fixed_servers",
+        rules: {
+          singleProxy: {
+            scheme: "socks5",
+            host: "127.0.0.1",
+            port: 9050
+          }
+        }
+      }
+    }, function() {
+      console.log("Proxy enabled");
+      updatePopup();
     });
-  } else {
-    iconElement.classList.remove('enabled');
-    iconElement.classList.add('disabled');
-    iconElement.innerText = "OFF";
-    statusElement.innerText = "Proxy is disabled";
-    document.getElementById('ip-address').innerText = "IP: Not available";
-  }
+  });
 });
 
+// Disable proxy
+document.getElementById('disable').addEventListener('click', function() {
+  chrome.storage.local.set({ proxyEnabled: false }, function() {
+    chrome.proxy.settings.clear({}, function() {
+      console.log("Proxy disabled");
+      updatePopup();
+    });
+  });
+});
+
+// Fetch current IP address
 function fetchIPAddress(callback) {
   fetch("http://ipinfo.io/json")
     .then(response => response.json())
     .then(data => callback(data.ip))
     .catch(err => console.log('Error fetching IP:', err));
 }
+
+// Update the popup when opened
+updatePopup();
