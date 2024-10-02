@@ -10,28 +10,61 @@ let proxyConfig = {
   }
 };
 
-// Set the proxy by default to on
-chrome.proxy.settings.set(
-  { value: proxyConfig, scope: 'regular' },
-  function() { console.log('Proxy enabled by default.'); }
-);
+// Enable proxy
+function enableProxy() {
+  chrome.proxy.settings.set({ value: proxyConfig, scope: 'regular' }, function() {
+    console.log('Proxy enabled.');
+  });
+  updateIcon(true);
+}
 
-// Function to disable the proxy
+// Disable proxy
 function disableProxy() {
   chrome.proxy.settings.clear({ scope: 'regular' }, function() {
     console.log('Proxy disabled.');
   });
+  updateIcon(false);
 }
 
-// Listener for on/off toggle
-chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
-  if (request.action === "enableProxy") {
-    chrome.proxy.settings.set({ value: proxyConfig, scope: 'regular' }, function() {
-      sendResponse({ status: "Proxy enabled" });
-    });
-  } else if (request.action === "disableProxy") {
-    disableProxy();
-    sendResponse({ status: "Proxy disabled" });
-  }
-  return true; // Ensures async response
+// Update icon based on proxy status
+function updateIcon(isEnabled) {
+  let iconPath = isEnabled ? 'icon-enabled.png' : 'icon-disabled.png';
+  chrome.browserAction.setIcon({ path: iconPath });
+}
+
+// Toggle proxy status on icon click
+chrome.browserAction.onClicked.addListener(function() {
+  chrome.storage.local.get(['proxyEnabled'], function(result) {
+    let proxyEnabled = result.proxyEnabled || false;
+
+    if (proxyEnabled) {
+      disableProxy();
+      chrome.storage.local.set({ proxyEnabled: false });
+    } else {
+      enableProxy();
+      chrome.storage.local.set({ proxyEnabled: true });
+    }
+  });
 });
+
+// Apply saved proxy settings when the extension is started
+function applySavedProxyState() {
+  chrome.storage.local.get(['proxyEnabled'], function(result) {
+    if (result.proxyEnabled) {
+      enableProxy();
+    } else {
+      disableProxy();
+    }
+  });
+}
+
+chrome.runtime.onStartup.addListener(applySavedProxyState);
+chrome.runtime.onInstalled.addListener(applySavedProxyState);
+
+// Fetch current IP address when proxy is enabled
+function fetchIPAddress(callback) {
+  fetch("http://ipinfo.io/json")
+    .then(response => response.json())
+    .then(data => callback(data.ip))
+    .catch(err => console.log('Error fetching IP:', err));
+}
