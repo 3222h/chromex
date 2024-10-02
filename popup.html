@@ -9,16 +9,19 @@
       flex-direction: column;
       justify-content: center;
       align-items: center;
+      min-width: 300px; /* Set minimum width */
+      min-height: 200px; /* Set minimum height */
     }
 
     #status {
       margin-bottom: 10px;
+      font-size: 16px;
     }
 
     .btn {
       display: inline-block;
-      margin: 5px;
-      padding: 10px 15px;
+      margin: 10px;
+      padding: 10px 20px;
       background-color: #007bff;
       color: white;
       border: none;
@@ -28,14 +31,23 @@
     .btn:hover {
       background-color: #0056b3;
     }
+
+    .info {
+      font-size: 14px;
+      margin-top: 15px;
+    }
   </style>
 </head>
 <body>
   <h2>SOCKS5 Proxy Toggle</h2>
   <p id="status">Proxy is disabled</p>
   <button id="enable" class="btn">Enable Proxy</button>
-  <button id="disable" class="btn">Disable Proxy</button>
-  <p id="ip-address">IP: Not available</p>
+  <button id="disable" class="btn" disabled>Disable Proxy</button>
+
+  <div class="info">
+    <p id="ip-address">IP: Not available</p>
+    <p id="ip-type">IP Type: Unknown</p>
+  </div>
 
   <script src="popup.js"></script>
 </body>
