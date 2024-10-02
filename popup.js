@@ -1,11 +1,20 @@
-document.getElementById('toggle-on').addEventListener('click', function() {
-  chrome.runtime.sendMessage({ action: "enableProxy" }, function(response) {
-    document.getElementById('status').innerText = "Status: " + response.status;
-  });
+// Get current proxy status and IP address
+chrome.storage.local.get(['proxyEnabled'], function(result) {
+  let statusText = result.proxyEnabled ? "Enabled" : "Disabled";
+  document.getElementById('status').innerText = "Status: " + statusText;
+
+  if (result.proxyEnabled) {
+    fetchIPAddress(function(ip) {
+      document.getElementById('ip-address').innerText = "IP: " + ip;
+    });
+  } else {
+    document.getElementById('ip-address').innerText = "IP: Not available";
+  }
 });
 
-document.getElementById('toggle-off').addEventListener('click', function() {
-  chrome.runtime.sendMessage({ action: "disableProxy" }, function(response) {
-    document.getElementById('status').innerText = "Status: " + response.status;
-  });
-});
+function fetchIPAddress(callback) {
+  fetch("http://ipinfo.io/json")
+    .then(response => response.json())
+    .then(data => callback(data.ip))
+    .catch(err => console.log('Error fetching IP:', err));
+}
