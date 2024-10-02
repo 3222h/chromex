@@ -1,6 +1,6 @@
 // Update proxy status and IP address in the popup
 function updatePopup() {
-  chrome.storage.local.get(['proxyEnabled'], function(result) {
+  chrome.storage.local.get(['proxyEnabled', 'youtubeSettingsEnabled'], function(result) {
     let statusElement = document.getElementById('status');
     let enableButton = document.getElementById('enable');
     let disableButton = document.getElementById('disable');
@@ -8,6 +8,8 @@ function updatePopup() {
     let ipTypeElement = document.getElementById('ip-type');
     let countryElement = document.getElementById('country');
     let adjustedTimeElement = document.getElementById('adjusted-time');
+    let youtubeStatusElement = document.getElementById('youtube-status');
+    let toggleYoutubeButton = document.getElementById('toggle-youtube');
 
     fetchIPAddress(function(ip, type, country, timezone) {
       ipElement.innerText = "IP: " + ip;
@@ -26,6 +28,7 @@ function updatePopup() {
       }
     });
 
+    // Update proxy status
     if (result.proxyEnabled) {
       statusElement.innerText = "Proxy is enabled";
       enableButton.disabled = true;
@@ -35,6 +38,15 @@ function updatePopup() {
       enableButton.disabled = false;
       disableButton.disabled = true;
       adjustedTimeElement.innerText = "Time: Not available"; // Reset time when disabled
+    }
+
+    // Update YouTube settings status
+    if (result.youtubeSettingsEnabled) {
+      youtubeStatusElement.innerText = "YouTube Settings are enabled";
+      toggleYoutubeButton.innerText = "Disable YouTube Settings";
+    } else {
+      youtubeStatusElement.innerText = "YouTube Settings are off";
+      toggleYoutubeButton.innerText = "Enable YouTube Settings";
     }
   });
 }
@@ -70,6 +82,57 @@ document.getElementById('disable').addEventListener('click', function() {
   });
 });
 
+// Toggle YouTube settings
+document.getElementById('toggle-youtube').addEventListener('click', function() {
+  chrome.storage.local.get(['youtubeSettingsEnabled'], function(result) {
+    let newState = !result.youtubeSettingsEnabled;
+    chrome.storage.local.set({ youtubeSettingsEnabled: newState }, function() {
+      if (newState) {
+        enableYouTubeSettings();
+      } else {
+        disableYouTubeSettings();
+      }
+      updatePopup();
+    });
+  });
+});
+
+// Enable YouTube playback settings
+function enableYouTubeSettings() {
+  chrome.tabs.query({ url: "*://www.youtube.com/*" }, function(tabs) {
+    for (let tab of tabs) {
+      chrome.tabs.executeScript(tab.id, {
+        code: `
+          const video = document.querySelector('video');
+          if (video) {
+            video.playbackRate = 0.25;
+            video.setVideoQuality('small'); // 144p quality
+          }
+        `
+      });
+      console.log("YouTube settings enabled.");
+    }
+  });
+}
+
+// Disable YouTube playback settings
+function disableYouTubeSettings() {
+  chrome.tabs.query({ url: "*://www.youtube.com/*" }, function(tabs) {
+    for (let tab of tabs) {
+      chrome.tabs.executeScript(tab.id, {
+        code: `
+          const video = document.querySelector('video');
+          if (video) {
+            video.playbackRate = 1.0; // Reset to normal speed
+            video.setVideoQuality('hd720'); // Reset to default quality (you can adjust this)
+          }
+        `
+      });
+      console.log("YouTube settings disabled.");
+    }
+  });
+});
+
 // Fetch current IP address, its type, country, and timezone
 function fetchIPAddress(callback) {
   fetch("http://ipinfo.io/json")
@@ -82,25 +145,4 @@ function fetchIPAddress(callback) {
 
       callback(ip, type, country, timezone);
     })
-    .catch(err => console.log('Error fetching IP:', err));
-}
-
-// Function to classify the IP type (datacenter, residential, etc.)
-function classifyIPType(organization) {
-  if (organization.includes("AS")) {
-    if (organization.toLowerCase().includes("mobile")) return "Mobile";
-    if (organization.toLowerCase().includes("residential")) return "Residential";
-    if (organization.toLowerCase().includes("vpn")) return "VPN";
-    if (organization.toLowerCase().includes("datacenter") || organization.toLowerCase().includes("cloud")) return "Datacenter";
-  }
-  return "Business";
-}
-
-// Get the adjusted time based on the IP's timezone
-function getAdjustedTime(timezone) {
-  const options = { timeZone: timezone, hour: '2-digit', minute: '2-digit', second: '2-digit', weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-  return new Intl.DateTimeFormat('en-US', options).format(new Date());
-}
-
-// Update the popup when opened
-updatePopup();
+    .catch(err => console.log('Error fetching IP:',
