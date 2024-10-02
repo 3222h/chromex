@@ -6,21 +6,35 @@ function updatePopup() {
     let disableButton = document.getElementById('disable');
     let ipElement = document.getElementById('ip-address');
     let ipTypeElement = document.getElementById('ip-type');
+    let countryElement = document.getElementById('country');
+    let adjustedTimeElement = document.getElementById('adjusted-time');
+
+    fetchIPAddress(function(ip, type, country, timezone) {
+      ipElement.innerText = "IP: " + ip;
+      ipTypeElement.innerText = "IP Type: " + type;
+      countryElement.innerText = "Country: " + country;
+
+      // Update the adjusted time in the popup
+      if (timezone) {
+        const adjustedTime = getAdjustedTime(timezone);
+        adjustedTimeElement.innerText = "Time: " + adjustedTime;
+      }
+      
+      // Update browser date and time if the proxy is enabled
+      if (result.proxyEnabled) {
+        setBrowserDateTime(timezone);
+      }
+    });
 
     if (result.proxyEnabled) {
       statusElement.innerText = "Proxy is enabled";
-      fetchIPAddress(function(ip, type) {
-        ipElement.innerText = "IP: " + ip;
-        ipTypeElement.innerText = "IP Type: " + type;
-      });
       enableButton.disabled = true;
       disableButton.disabled = false;
     } else {
       statusElement.innerText = "Proxy is disabled";
-      ipElement.innerText = "IP: Not available";
-      ipTypeElement.innerText = "IP Type: Unknown";
       enableButton.disabled = false;
       disableButton.disabled = true;
+      adjustedTimeElement.innerText = "Time: Not available"; // Reset time when disabled
     }
   });
 }
@@ -56,14 +70,17 @@ document.getElementById('disable').addEventListener('click', function() {
   });
 });
 
-// Fetch current IP address and its type
+// Fetch current IP address, its type, country, and timezone
 function fetchIPAddress(callback) {
   fetch("http://ipinfo.io/json")
     .then(response => response.json())
     .then(data => {
       let ip = data.ip;
       let type = classifyIPType(data.org);
-      callback(ip, type);
+      let country = data.country || "Unknown";
+      let timezone = data.timezone || "UTC";
+
+      callback(ip, type, country, timezone);
     })
     .catch(err => console.log('Error fetching IP:', err));
 }
@@ -77,6 +94,12 @@ function classifyIPType(organization) {
     if (organization.toLowerCase().includes("datacenter") || organization.toLowerCase().includes("cloud")) return "Datacenter";
   }
   return "Business";
+}
+
+// Get the adjusted time based on the IP's timezone
+function getAdjustedTime(timezone) {
+  const options = { timeZone: timezone, hour: '2-digit', minute: '2-digit', second: '2-digit', weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+  return new Intl.DateTimeFormat('en-US', options).format(new Date());
 }
 
 // Update the popup when opened
