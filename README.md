@@ -1,4 +1,5 @@
 ## How to Use
+used to connect tor vpn in chrome
 
 ### 1. Clone the Repository
 
